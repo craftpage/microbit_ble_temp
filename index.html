@@ -1,0 +1,48 @@
+<html>
+    <head>
+    <script>
+    var microbitBle;
+    var temperatureCharacteristic;
+    var temperature = 0;
+    var temperatureDiv = document.getElementById('temperature');
+    function connect() {
+        microbitBle = new MicroBitBle();
+        microbitBle.connect()
+        .then(() => {
+            console.log('micro:bit is connected');
+            return microbitBle.getTemperatureCharacteristic();
+        })
+        .then((characteristic) => {
+            temperatureCharacteristic = characteristic;
+            temperatureCharacteristic.addEventListener('characteristicvaluechanged', onTemperatureChanged);
+            return temperatureCharacteristic.startNotifications();
+        })
+        .then(() => {
+            console.log('temperature notifications started');
+        })
+        .catch((error) => {
+            console.log(error);
+        });
+    }
+    function onTemperatureChanged(event) {
+        temperature = event.target.value.getInt16(0, true) / 100;
+        temperatureDiv.innerHTML = temperature;
+    }
+    function disconnect() {
+        if (microbitBle) {
+        microbitBle.disconnect();
+        }
+    }
+    window.addEventListener('load', function() {
+        document.getElementById('connect').addEventListener('click', connect);
+        document.getElementById('disconnect').addEventListener('click', disconnect);
+    });
+</script>
+
+</head>
+<body>
+    <button id="connect">connect</button>
+    <button id="disconnect">disconnect</button>
+    <div id="temperature">0</div>
+</body>
+</html>
